@@ -11,7 +11,7 @@ import numpy as np
 
 
 # Enable multithreading?
-MULTITHREAD = True
+MULTITHREAD = False
 
 for suffix in ['so', 'dll', 'dylib']:
     dllfn = os.path.join(os.path.dirname(__file__), 'bin/2048.' + suffix)
@@ -71,7 +71,7 @@ def to_score(m):
 
 if MULTITHREAD:
     from multiprocessing.pool import ThreadPool
-    pool = ThreadPool(4)
+    pool = ThreadPool(2)
 
     def score_toplevel_move(args):
         return ailib.score_toplevel_move(*args)
