@@ -22,39 +22,31 @@ class NNAgent(Agent):
         tf.keras.backend.clear_session()
         if stateful==False:
             train_input=keras.Input(shape=(None,4,4),name='float_input')
-            cat_input=keras.Input(shape=(None,4,4,15),name='cat_input')
+            cat_input=keras.Input(shape=(None,4,4,16),name='cat_input')
         else:
             train_input=keras.Input(batch_shape=(1,1,4,4),name='float_input')
-            cat_input=keras.Input(batch_shape=(1,1,4,4,15),name='cat_input')
+            cat_input=keras.Input(batch_shape=(1,1,4,4,16),name='cat_input')
+        
+        
+        mask_value=np.ones((4,4),dtype=int)
+        mask=layers.Masking(mask_value=mask_value)(train_input)
             
         stdreshape=layers.Reshape((-1,16))(train_input)
         floatConv=layers.Reshape((-1,4,4,1))(train_input)
         
-        conv_2d_layer_1 = layers.Conv2D(128, (1, 2))
-        conv_2d_layer_2 = layers.Conv2D(128, (2, 1))
-        conv_2d_layer_3 = layers.Conv2D(128, (1, 2))
-        conv_2d_layer_4 = layers.Conv2D(128, (2, 1))
-        conv_2d_layer_5 = layers.Conv2D(128, (1, 2))
-        conv_2d_layer_6 = layers.Conv2D(128, (2, 1))
-        Conved_1=layers.TimeDistributed(conv_2d_layer_1)(cat_input)
-        Conved_2=layers.TimeDistributed(conv_2d_layer_2)(cat_input)
-        Conved_3=layers.TimeDistributed(conv_2d_layer_3)(Conved_1)
-        Conved_4=layers.TimeDistributed(conv_2d_layer_4)(Conved_1)
-        Conved_5=layers.TimeDistributed(conv_2d_layer_5)(Conved_2)
-        Conved_6=layers.TimeDistributed(conv_2d_layer_6)(Conved_2)
-        flat_Conved_1=layers.TimeDistributed(layers.Flatten())(Conved_1)
-        flat_Conved_2=layers.TimeDistributed(layers.Flatten())(Conved_2)
+#         conv_2d_layer_1 = layers.Conv2D(256, (2, 2),padding="same",activation="relu")
+#         conv_2d_layer_2 = layers.Conv2D(256, (2, 2),padding="same",activation="relu")
+#         conv_2d_layer_3 = layers.Conv2D(256, (2, 2),padding="same",activation="relu")
+        Conved_1=layers.TimeDistributed(layers.Conv2D(256, (2, 2),padding="same",activation="relu"))(cat_input)
+        Conved_2=layers.TimeDistributed(layers.Conv2D(256, (2, 2),padding="same",activation="relu"))(Conved_1)
+        Conved_3=layers.TimeDistributed(layers.Conv2D(256, (2, 2),padding="same",activation="relu"))(Conved_2)
         flat_Conved_3=layers.TimeDistributed(layers.Flatten())(Conved_3)
-        flat_Conved_4=layers.TimeDistributed(layers.Flatten())(Conved_4)
-        flat_Conved_5=layers.TimeDistributed(layers.Flatten())(Conved_5)
-        flat_Conved_6=layers.TimeDistributed(layers.Flatten())(Conved_6)
-        combined=K.concatenate([flat_Conved_3,flat_Conved_4,flat_Conved_5,flat_Conved_6])
+#         combined=K.concatenate([flat_Conved_3,flat_Conved_4,flat_Conved_5,flat_Conved_6])
 #         LSTM=layers.LSTM(16,
 #             return_sequences=True,
 #             stateful=stateful)(combined)
 #         combined=K.concatenate([combined,LSTM])
-        combined=layers.Dense(192, activation='relu',name='DenseH')(combined)
-        train_out=layers.Dense(4, activation='relu',name='DenseL')(combined)
+        train_out=layers.Dense(4, activation='softmax',name='Dense')(flat_Conved_3)
         
         self.model=keras.Model([train_input,cat_input],train_out)
         self.model.compile(loss=keras.losses.categorical_crossentropy,
@@ -88,11 +80,11 @@ class NNAgent(Agent):
                     self.display.display(self.game)
                     
         if self.debug:
-            return n_bad_decision/n_iter
+            return 1-n_bad_decision/n_iter
     
     def encode(self):
-        list=[0,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536]
-        code=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+        list=[0,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768]
+        code=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
         output=np.zeros((4,4),dtype=int)
         for i in code:
             output[np.where(self.game.board==list[i])]=code[i]
@@ -101,7 +93,7 @@ class NNAgent(Agent):
     def step(self):
         formatted=np.empty((1,1,4,4),dtype=float)
         formatted[0,0]=self.encode()
-        cat_formatted=np_utils.to_categorical(formatted,num_classes=15)
+        cat_formatted=np_utils.to_categorical(formatted,num_classes=16)
         
         formatted[0,0]=formatted[0,0]/np.max(formatted[0,0])
         Y=self.model.predict([formatted,cat_formatted],batch_size=1)
