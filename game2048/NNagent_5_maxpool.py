@@ -50,7 +50,7 @@ class NNAgent(Agent):
                               metrics=['CategoricalAccuracy'])
         return model
     
-    def __init__(self, game, display=None, training=False,modelname='2048_6_18_CNN5_pool_whatever_data_I_have',debug=False,vote=True):
+    def __init__(self, game, display=None, training=False,modelname='2048_6_18_CNN5_maxpool_whatever_data_I_have',debug=False,vote=True):
         self.vote=vote
         self.debug=debug
         self.training=training
