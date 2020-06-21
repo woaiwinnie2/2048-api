@@ -16,9 +16,9 @@ if __name__ == '__main__':
 
     '''====================
     Use your own agent here.'''
-    from game2048.NNagent import NNAgent as TestAgent
+    from game2048.NNagent_5_maxpool import NNAgent as TestAgent
     '''===================='''
-    
+
     scores = []
     for _ in range(N_TESTS):
         score = single_run(GAME_SIZE, SCORE_TO_WIN,
