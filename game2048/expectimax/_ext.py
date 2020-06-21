@@ -11,7 +11,7 @@ import numpy as np
 
 
 # Enable multithreading?
-MULTITHREAD = False
+MULTITHREAD = True
 
 for suffix in ['so', 'dll', 'dylib']:
     dllfn = os.path.join(os.path.dirname(__file__), 'bin/2048.' + suffix)
@@ -71,7 +71,7 @@ def to_score(m):
 
 if MULTITHREAD:
     from multiprocessing.pool import ThreadPool
-    pool = ThreadPool(2)
+    pool = ThreadPool(4)
 
     def score_toplevel_move(args):
         return ailib.score_toplevel_move(*args)
@@ -83,13 +83,15 @@ if MULTITHREAD:
                           (board, move) for move in range(4)])
         bestmove, bestscore = max(enumerate(scores), key=lambda x: x[1])
         if bestscore == 0:
-            return -1
-        return bestmove
-else:
-    def find_best_move(m):
-        board = to_c_board(m)
-        move = ailib.find_best_move(board)
-        return move
+            return -1,[0,0,0,0]
+        return bestmove,scores
+    
+
+# else:
+#     def find_best_move(m):
+#         board = to_c_board(m)
+#         move = ailib.find_best_move(board)
+#         return move
 
 
 def m_to_move(m):
@@ -97,8 +99,9 @@ def m_to_move(m):
     expectmax: udlr
     mine: ldru
     '''
-    move = find_best_move(m)
-    return [3, 1, 0, 2][move]
+    move,scores = find_best_move(m)
+    correct_score=[scores[2],scores[1],scores[3],scores[0]]
+    return [3, 1, 0, 2][move],correct_score
 
 
 def board_to_move(x):
@@ -107,5 +110,5 @@ def board_to_move(x):
     ret = []
     for r in arr:
         ret.append([int(c) for c in r])
-    move = m_to_move(ret)
-    return move
+    move,score = m_to_move(ret)
+    return move,score

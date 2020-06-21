@@ -44,5 +44,5 @@ class ExpectiMaxAgent(Agent):
         self.search_func = board_to_move
 
     def step(self):
-        direction = self.search_func(self.game.board)
+        direction = self.search_func(self.game.board)[0]
         return direction
